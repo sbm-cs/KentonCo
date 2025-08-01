@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Kenton</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map {
+            flex-grow: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        .mapboxgl-popup {
+            width: 175px;
+            font: 12px/20px 'Roboto', sans-serif;
+            background-color: #425A70;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            display: block;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mapboxgl-popup .mapboxgl-popup-tip {
+            display: none;
+        }
+
+        .mapboxgl-popup-close-button {
+            top: 2px;
+            right: 4px;
+            width: 7px;
+            height: 7px;
+            color: #fff;
+        }
+
+        .mapboxgl-popup-header {
+            margin: 0px;
+            font-size: 14px;
+            color: #fff;
+            font-weight: bold;
+            padding: 5px;
+        }
+
+        .mapboxgl-popup-content {
+            font-size: 12px;
+            color: black;
+            margin-left: 0px;
+            padding: 8px;
+            background-color: #fff;
+            line-height: 1.25;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script>
+        const lotSizePalette = [
+            '#fff7fb', '#ece2f0', '#d0d1e6', '#a6bddb', '#67a9cf',
+            '#3690c0', '#02818a', '#016450'
+        ];
+
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic2FyYWJyZW50IiwiYSI6ImNtMHpsb2Q4NTAwemoybHExbnB6eHVvZ2kifQ.nH0hUSv3IGzX6MkYB_cSmA';
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v11',
+            zoom: 11,
+            center: [-84.546776, 38.935556],
+            projection: 'globe'
+        });
+
+        map.on('load', () => {
+            map.setFog({});
+
+            map.addSource('mapillary', {
+                type: 'vector',
+                tiles: [
+                    'https://tiles.mapillary.com/maps/vtp/mly1_public/2/{z}/{x}/{y}?access_token=MLY|4142433049200173|72206abe5035850d6743b23a49c41333'
+                ],
+                minzoom: 8,
+                maxzoom: 14
+            });
+
+            map.addSource('parcels', {
+                type: 'geojson',
+                data: 'Parcels_25_07_31_noBuild_dissolve4.geojson'
+            });
+
+            map.addLayer({
+                id: 'Lot-Sizes-of-Residential-Parcels',
+                type: 'fill',
+                source: 'parcels',
+                paint: {
+                    'fill-outline-color': 'white',
+                    'fill-color': [
+                        "case", ["==", ["get", "score2"], null], 'white',
+                        ["interpolate", ["linear"], ["get", "score2"],
+                            0, lotSizePalette[0],
+                            2, lotSizePalette[1],
+                            2.25, lotSizePalette[2],
+                            2.5, lotSizePalette[3],
+                            3, lotSizePalette[4],
+                            3.5, lotSizePalette[5],
+                            4.5, lotSizePalette[6],
+                            5.5, lotSizePalette[7]
+                        ]
+                    ],
+                    'fill-opacity': [
+                        "case",
+                        ["boolean", ["feature-state", "hover"], false],
+                        0.5,
+                        1
+                    ],
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                map.resize();
+            });
+
+            map.setLayoutProperty('Lot-Sizes-of-Residential-Parcels', 'visibility', 'visible');
+
+
+
+        });
+
+
+    </script>
+</body>
+
+</html>
